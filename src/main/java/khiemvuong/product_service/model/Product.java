@@ -1,5 +1,4 @@
-package khiemvuong.product_service.model;
-
+package khiemvuong.product_service.model;;
 public class Product {
     private Long id;
     private String name;
