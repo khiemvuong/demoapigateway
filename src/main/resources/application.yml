@@ -1,4 +1,27 @@
-server:
-  port: 8080
-
-
+spring:
+  application:
+    name: product_service
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            key-resolver: "#{@keyResolver}"
+      routes:
+        - id: product_route
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+  data:
+    redis:
+      host: localhost
+      port: 6379
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

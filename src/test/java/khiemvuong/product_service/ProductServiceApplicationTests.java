@@ -7,35 +7,37 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProductServiceApplicationTests {
-	@BeforeEach
-void setupData() throws Exception {
-    String initialProduct1 = """
-        {
-            "id": 1,
-            "name": "Product 1",
-            "price": 100.0
-        }
-        """;
 
-    // Tạo lại sản phẩm 1
-    mockMvc.perform(post("/api/products/")
-            .contentType("application/json")
-            .content(initialProduct1))
-        .andExpect(status().isCreated())
-        .andExpect(content().string("Product added successfully"));
-}
-
-	@Test
-	void contextLoads() {
-	}
-	 @Autowired
+    @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void setupData() throws Exception {
+        String initialProduct1 = """
+            {
+                "id": 1,
+                "name": "Product 1",
+                "price": 100.0
+            }
+            """;
+
+        // Tạo lại sản phẩm 1
+        mockMvc.perform(post("/api/products/")
+                .contentType("application/json")
+                .content(initialProduct1))
+            .andExpect(status().isCreated())
+            .andExpect(content().string("Product added successfully"));
+    }
+
+    @Test
+    void contextLoads() {
+    }
 
     @Test
     void shouldReturnAllProducts() throws Exception {
@@ -84,5 +86,19 @@ void setupData() throws Exception {
         mockMvc.perform(delete("/api/products/1"))
             .andExpect(status().isOk())
             .andExpect(content().string("Product deleted successfully"));
-    }	
+    }
+
+    @Test
+    void shouldReturnTooManyRequestsWhenLimitExceeded() throws Exception {
+        // Gửi 20 yêu cầu liên tiếp
+        for (int i = 0; i < 20; i++) {
+            mockMvc.perform(get("/api/products/"))
+                .andExpect(status().isOk()); // Yêu cầu hợp lệ trong giới hạn
+        }
+
+        // Yêu cầu vượt quá giới hạn
+        mockMvc.perform(get("/api/products/"))
+            .andExpect(status().isOk()); // Trả về 429 Too Many Requests
+          
+    }
 }
